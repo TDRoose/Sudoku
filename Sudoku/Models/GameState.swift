@@ -1,4 +1,11 @@
-import Foundation
+import SwiftUI
+
+enum SudokuColors {
+    /// Filled digits and Number-mode UI.
+    static let number = Color.blue
+    /// Pencil marks in the grid and Notes-mode UI.
+    static let note = Color.green
+}
 
 enum Difficulty: String, Codable, CaseIterable, Identifiable {
     case easy
@@ -20,9 +27,16 @@ enum Difficulty: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-enum InputMode: String, Codable {
+enum InputMode: String, Codable, Equatable {
     case number
     case notes
+
+    var accentColor: Color {
+        switch self {
+        case .number: return SudokuColors.number
+        case .notes: return SudokuColors.note
+        }
+    }
 }
 
 enum Move: Codable, Equatable {

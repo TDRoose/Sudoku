@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SudokuGridView: View {
     let board: Board
+    let inputMode: InputMode
     let selectedRow: Int?
     let selectedCol: Int?
     let conflictKeys: Set<String>
@@ -40,6 +41,7 @@ struct SudokuGridView: View {
         } label: {
             CellView(
                 cell: board.cells[row][col],
+                inputMode: inputMode,
                 isSelected: isSelected,
                 hasConflict: conflictKeys.contains(key),
                 isHighlighted: highlightsPeer && !isSelected

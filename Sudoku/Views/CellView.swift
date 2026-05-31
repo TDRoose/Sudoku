@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CellView: View {
     let cell: Cell
+    let inputMode: InputMode
     let isSelected: Bool
     let hasConflict: Bool
     let isHighlighted: Bool
@@ -12,7 +13,7 @@ struct CellView: View {
             if let value = cell.value {
                 Text("\(value)")
                     .font(.system(size: 22, weight: cell.isGiven ? .bold : .semibold))
-                    .foregroundColor(cell.isGiven ? .primary : .blue)
+                    .foregroundColor(cell.isGiven ? Color.primary : SudokuColors.number)
             } else if !cell.notes.isEmpty {
                 notesGrid
             }
@@ -23,7 +24,9 @@ struct CellView: View {
     private var backgroundColor: Color {
         if hasConflict { return Color.red.opacity(0.35) }
         if isSelected { return Color.yellow.opacity(0.45) }
-        if isHighlighted { return Color.blue.opacity(0.08) }
+        if isHighlighted {
+            return inputMode.accentColor.opacity(0.1)
+        }
         return Color(.systemBackground)
     }
 
@@ -37,7 +40,7 @@ struct CellView: View {
                         Text(sorted.contains(digit) ? "\(digit)" : " ")
                             .font(.system(size: 8))
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(SudokuColors.note)
                     }
                 }
             }

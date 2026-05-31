@@ -12,6 +12,8 @@ struct ControlsView: View {
     let onDigit: (Int) -> Void
     let onErase: () -> Void
 
+    private var activeColor: Color { inputMode.accentColor }
+
     private let numpadRows: [[Int]] = [
         [1, 2, 3],
         [4, 5, 6],
@@ -24,14 +26,7 @@ struct ControlsView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Picker("Mode", selection: Binding(
-                get: { inputMode },
-                set: { onModeChange($0) }
-            )) {
-                Text("Number").tag(InputMode.number)
-                Text("Notes").tag(InputMode.notes)
-            }
-            .pickerStyle(.segmented)
+            inputModeSelector
 
             HStack {
                 if numpadOnLeft {
@@ -44,6 +39,33 @@ struct ControlsView: View {
             }
             .frame(maxWidth: .infinity)
         }
+    }
+
+    private var inputModeSelector: some View {
+        HStack(spacing: 0) {
+            modeSegment(title: "Number", mode: .number)
+            modeSegment(title: "Notes", mode: .notes)
+        }
+        .background(Color(.tertiarySystemFill))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .disabled(isGenerating)
+    }
+
+    private func modeSegment(title: String, mode: InputMode) -> some View {
+        let isSelected = inputMode == mode
+        let color = mode.accentColor
+
+        return Button {
+            onModeChange(mode)
+        } label: {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(color.opacity(isSelected ? 1 : 0.5))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(isSelected ? color.opacity(0.2) : Color.clear)
+        }
+        .buttonStyle(.plain)
     }
 
     private var numpad: some View {
@@ -59,9 +81,14 @@ struct ControlsView: View {
             Button(action: onErase) {
                 Text("Erase")
                     .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(activeColor)
                     .frame(width: numpadWidth, height: Self.keySize)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(activeColor.opacity(0.35), lineWidth: 1)
+                    )
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.plain)
             .disabled(isGenerating)
         }
     }
@@ -74,18 +101,23 @@ struct ControlsView: View {
         } label: {
             Text("\(digit)")
                 .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(activeColor)
                 .frame(width: Self.keySize, height: Self.keySize)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(isComplete ? Color.green.opacity(0.28) : Color.clear)
+                        .fill(isComplete ? SudokuColors.note.opacity(0.25) : Color.clear)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(isComplete ? Color.green.opacity(0.65) : Color.clear, lineWidth: 2)
+                        .stroke(
+                            isComplete ? SudokuColors.note.opacity(0.7) : activeColor.opacity(0.35),
+                            lineWidth: isComplete ? 2 : 1
+                        )
                 )
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
         .disabled(isGenerating)
         .animation(.easeInOut(duration: 0.2), value: isComplete)
+        .animation(.easeInOut(duration: 0.15), value: inputMode)
     }
 }

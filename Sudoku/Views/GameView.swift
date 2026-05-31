@@ -13,6 +13,8 @@ struct GameView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 16) {
+                headerBar
+
                 Picker("Difficulty", selection: difficultySelection) {
                     ForEach(Difficulty.allCases) { level in
                         Text(level.displayName).tag(level)
@@ -29,6 +31,7 @@ struct GameView: View {
 
                 SudokuGridView(
                     board: viewModel.state.board,
+                    inputMode: viewModel.state.inputMode,
                     selectedRow: viewModel.state.selectedRow,
                     selectedCol: viewModel.state.selectedCol,
                     conflictKeys: viewModel.conflictKeys,
@@ -51,22 +54,7 @@ struct GameView: View {
 
                 Spacer(minLength: 0)
             }
-            .navigationTitle("Sudoku")
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        viewModel.toggleNumpadSide()
-                    } label: {
-                        Image(systemName: viewModel.numpadOnLeft ? "hand.point.left.fill" : "hand.point.right.fill")
-                    }
-                    .accessibilityLabel(viewModel.numpadOnLeft ? "Numpad on left" : "Numpad on right")
-                    .disabled(viewModel.isGenerating)
-                    Button("Hint") {
-                        viewModel.hint()
-                    }
-                    .disabled(viewModel.isGenerating)
-                }
-            }
+            .navigationBarHidden(true)
             .alert("You solved it!", isPresented: Binding(
                 get: { viewModel.showWinAlert },
                 set: { viewModel.showWinAlert = $0 }
@@ -91,6 +79,33 @@ struct GameView: View {
             }
         }
         .navigationViewStyle(.stack)
+    }
+
+    private var headerBar: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text("Sudoku")
+                .font(.title2)
+                .fontWeight(.bold)
+
+            Spacer(minLength: 0)
+
+            Button {
+                viewModel.toggleNumpadSide()
+            } label: {
+                Image(systemName: viewModel.numpadOnLeft ? "hand.point.left.fill" : "hand.point.right.fill")
+                    .font(.body)
+            }
+            .accessibilityLabel(viewModel.numpadOnLeft ? "Numpad on left" : "Numpad on right")
+            .disabled(viewModel.isGenerating)
+
+            Button("Hint") {
+                viewModel.hint()
+            }
+            .font(.body)
+            .disabled(viewModel.isGenerating)
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
     }
 
     private var difficultyChangeTitle: String {
