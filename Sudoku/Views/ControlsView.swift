@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct ControlsView: View {
-    private static let keySize: CGFloat = 40
-    private static let keySpacing: CGFloat = 6
+    private static let minKeySize: CGFloat = 44
+    private static let maxKeySize: CGFloat = 80
+    private static let selectorHeight: CGFloat = 36
+    private static let sectionSpacing: CGFloat = 12
 
     let inputMode: InputMode
     let completedDigits: Set<Int>
@@ -20,71 +22,62 @@ struct ControlsView: View {
         [7, 8, 9],
     ]
 
-    private var numpadWidth: CGFloat {
-        Self.keySize * 3 + Self.keySpacing * 2
+    var body: some View {
+        GeometryReader { geometry in
+            let layout = LayoutMetrics(containerSize: geometry.size)
+
+            VStack(spacing: Self.sectionSpacing) {
+                inputModeSelector
+
+                HStack(alignment: .bottom) {
+                    if numpadOnLeft {
+                        numpad(layout: layout)
+                        Spacer(minLength: 0)
+                    } else {
+                        Spacer(minLength: 0)
+                        numpad(layout: layout)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            }
+        }
+        .frame(minHeight: Self.minKeySize * 4 + Self.selectorHeight + Self.sectionSpacing * 2)
     }
 
-    var body: some View {
-        VStack(spacing: 12) {
-            inputModeSelector
-
-            HStack {
-                if numpadOnLeft {
-                    numpad
-                    Spacer(minLength: 0)
-                } else {
-                    Spacer(minLength: 0)
-                    numpad
-                }
-            }
-            .frame(maxWidth: .infinity)
-        }
+    private var inputModeSelection: Binding<InputMode> {
+        Binding(
+            get: { inputMode },
+            set: { onModeChange($0) }
+        )
     }
 
     private var inputModeSelector: some View {
-        HStack(spacing: 0) {
-            modeSegment(title: "Number", mode: .number)
-            modeSegment(title: "Notes", mode: .notes)
+        Picker("Input mode", selection: inputModeSelection) {
+            Text("Number").tag(InputMode.number)
+            Text("Notes").tag(InputMode.notes)
         }
-        .background(Color(.tertiarySystemFill))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .pickerStyle(.segmented)
+        .tint(inputMode.accentColor)
         .disabled(isGenerating)
     }
 
-    private func modeSegment(title: String, mode: InputMode) -> some View {
-        let isSelected = inputMode == mode
-        let color = mode.accentColor
-
-        return Button {
-            onModeChange(mode)
-        } label: {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(color.opacity(isSelected ? 1 : 0.5))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(isSelected ? color.opacity(0.2) : Color.clear)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var numpad: some View {
-        VStack(spacing: Self.keySpacing) {
+    private func numpad(layout: LayoutMetrics) -> some View {
+        VStack(spacing: layout.keySpacing) {
             ForEach(numpadRows, id: \.self) { row in
-                HStack(spacing: Self.keySpacing) {
+                HStack(spacing: layout.keySpacing) {
                     ForEach(row, id: \.self) { digit in
-                        numpadKey(digit: digit)
+                        numpadKey(digit: digit, layout: layout)
                     }
                 }
             }
 
             Button(action: onErase) {
                 Text("Erase")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: layout.eraseFontSize, weight: .medium))
                     .foregroundColor(activeColor)
-                    .frame(width: numpadWidth, height: Self.keySize)
+                    .frame(width: layout.numpadWidth, height: layout.keySize)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: layout.cornerRadius)
                             .stroke(activeColor.opacity(0.35), lineWidth: 1)
                     )
             }
@@ -93,22 +86,22 @@ struct ControlsView: View {
         }
     }
 
-    private func numpadKey(digit: Int) -> some View {
+    private func numpadKey(digit: Int, layout: LayoutMetrics) -> some View {
         let isComplete = completedDigits.contains(digit)
 
         return Button {
             onDigit(digit)
         } label: {
             Text("\(digit)")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: layout.digitFontSize, weight: .semibold))
                 .foregroundColor(activeColor)
-                .frame(width: Self.keySize, height: Self.keySize)
+                .frame(width: layout.keySize, height: layout.keySize)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: layout.cornerRadius)
                         .fill(isComplete ? SudokuColors.note.opacity(0.25) : Color.clear)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: layout.cornerRadius)
                         .stroke(
                             isComplete ? SudokuColors.note.opacity(0.7) : activeColor.opacity(0.35),
                             lineWidth: isComplete ? 2 : 1
@@ -119,5 +112,35 @@ struct ControlsView: View {
         .disabled(isGenerating)
         .animation(.easeInOut(duration: 0.2), value: isComplete)
         .animation(.easeInOut(duration: 0.15), value: inputMode)
+    }
+}
+
+private extension ControlsView {
+    struct LayoutMetrics {
+        let keySize: CGFloat
+        let keySpacing: CGFloat
+        let digitFontSize: CGFloat
+        let eraseFontSize: CGFloat
+        let cornerRadius: CGFloat
+
+        var numpadWidth: CGFloat {
+            keySize * 3 + keySpacing * 2
+        }
+
+        init(containerSize: CGSize) {
+            keySpacing = 8
+            let rowCount: CGFloat = 4
+            let verticalGaps = keySpacing * (rowCount - 1)
+            let heightBudget = containerSize.height - ControlsView.selectorHeight - ControlsView.sectionSpacing
+            let fromHeight = (heightBudget - verticalGaps) / rowCount
+            let fromWidth = (containerSize.width - keySpacing * 2) / 3
+            keySize = min(
+                ControlsView.maxKeySize,
+                max(ControlsView.minKeySize, min(fromHeight, fromWidth))
+            )
+            digitFontSize = keySize * 0.5
+            eraseFontSize = keySize * 0.38
+            cornerRadius = min(10, keySize * 0.2)
+        }
     }
 }

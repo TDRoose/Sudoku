@@ -27,7 +27,7 @@ enum Difficulty: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-enum InputMode: String, Codable, Equatable {
+enum InputMode: String, Codable, Equatable, Hashable {
     case number
     case notes
 

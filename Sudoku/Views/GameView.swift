@@ -51,8 +51,7 @@ struct GameView: View {
                     onErase: { viewModel.erase() }
                 )
                 .padding(.horizontal)
-
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             .navigationBarHidden(true)
             .alert("You solved it!", isPresented: Binding(
