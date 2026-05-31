@@ -6,10 +6,10 @@ A native **SwiftUI** Sudoku app for learning iOS development. Play on the Simula
 
 1. Install **Xcode** from the Mac App Store.
 2. Open `Sudoku.xcodeproj` in this folder.
-3. Select an **iPhone** simulator (e.g. iPhone 16).
+3. Select an **iPhone** simulator (e.g. iPhone 13).
 4. Press **Run** (⌘R).
 
-To run on your phone: connect the device, pick it as the run destination, and set **Signing & Capabilities** to your Apple ID team.
+**Install on your iPhone:** see **[INSTALL-ON-IPHONE.md](INSTALL-ON-IPHONE.md)** for a full walkthrough (signing, Developer Mode, trust, and troubleshooting).
 
 ## Project layout
 
@@ -17,7 +17,7 @@ To run on your phone: connect the device, pick it as the run destination, and se
 |--------|---------|
 | `Sudoku/Models/` | `Board`, `Cell`, `GameState` — game data |
 | `Sudoku/Engine/` | Validation, solver, puzzle generator (pure Swift) |
-| `Sudoku/ViewModels/` | `GameViewModel` — `@Observable` state and actions |
+| `Sudoku/ViewModels/` | `GameViewModel` — `ObservableObject` state and actions |
 | `Sudoku/Views/` | SwiftUI screens and controls |
 | `Sudoku/Persistence/` | Save/load via `UserDefaults` |
 | `SudokuTests/` | Unit tests for solver and generator |
@@ -34,7 +34,7 @@ To run on your phone: connect the device, pick it as the run destination, and se
 ## Concepts to explore
 
 - **View vs ViewModel**: Views only display and forward taps; `GameViewModel` owns rules and undo.
-- **@Observable** (iOS 17+): SwiftUI updates when `viewModel.state` changes.
+- **ObservableObject**: SwiftUI updates when `viewModel` publishes changes (iOS 15+).
 - **Codable + UserDefaults**: `GameStore` persists `GameState` as JSON.
 
 ## Tests

@@ -4,7 +4,7 @@ Guidance for AI agents working in this repository.
 
 ## Project summary
 
-Personal **iOS Sudoku** app (SwiftUI, iOS 17+). Not a web app, the app lives under `Sudoku/` and `Sudoku.xcodeproj`.
+Personal **iOS Sudoku** app (SwiftUI, iOS 15+). Not a web app, the app lives under `Sudoku/` and `Sudoku.xcodeproj`.
 
 - **Owner goal**: learning iOS; keep changes small and teachable.
 - **Remote**: `git@github.com:TDRoose/Sudoku.git`
@@ -15,8 +15,8 @@ Personal **iOS Sudoku** app (SwiftUI, iOS 17+). Not a web app, the app lives und
 | Layer | Choice |
 |-------|--------|
 | UI | SwiftUI |
-| State | `@Observable` `GameViewModel` (Observation framework) |
-| Min OS | iOS 17.0 |
+| State | `ObservableObject` `GameViewModel` (`@Published`) |
+| Min OS | iOS 15.0 (iPhone 13 compatible) |
 | Persistence | `Codable` + `UserDefaults` via `GameStore` |
 | Tests | XCTest in `SudokuTests/` |
 
@@ -109,6 +109,21 @@ If the named simulator is missing, pick any available iPhone simulator or use `g
 
 1. Create the `.swift` file under the correct `Sudoku/` subfolder.
 2. Add a `PBXFileReference` and `PBXBuildFile` entry in `Sudoku.xcodeproj/project.pbxproj`, and include it in the `Sources` build phase for the Sudoku target (and test target if applicable).
+
+## Cursor agent setup (this repo)
+
+| File | Purpose |
+|------|---------|
+| `.cursor/rules/swiftui-architecture.mdc` | Swift/SwiftUI layer boundaries when editing `Sudoku/**/*.swift` |
+| `.cursor/hooks.json` | `verify-ios` after Swift writes; `shell-guard` before terminal |
+| `.cursor/hooks/verify-ios.sh` | Runs `xcodebuild` after edits under `Sudoku/` or `SudokuTests/` |
+| `.cursor/hooks/shell-guard.sh` | Blocks `rm -rf`; asks before `git push` / force push |
+| `.cursor/permissions.json` | IDE terminal/MCP allowlists + Auto-review hints (requires Run Mode) |
+| `.cursor/cli.json` | CLI agent allow/deny patterns for this project |
+
+**Run Mode:** `permissions.json` only applies when Run Mode is enabled in Cursor Settings. If terminal commands still prompt every time, add entries in Settings or extend `terminalAllowlist`.
+
+**Hooks:** Reload on save; restart Cursor if hooks do not fire. Check the **Hooks** output channel when debugging.
 
 ## Human docs
 

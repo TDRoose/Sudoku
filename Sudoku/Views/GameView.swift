@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct GameView: View {
-    @State private var viewModel = GameViewModel()
+    @StateObject private var viewModel = GameViewModel()
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(spacing: 16) {
                 if viewModel.isGenerating {
                     ProgressView("Generating puzzle…")
@@ -40,7 +40,7 @@ struct GameView: View {
             }
             .navigationTitle("Sudoku")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Picker("Difficulty", selection: Binding(
                         get: { viewModel.state.difficulty },
                         set: { viewModel.setDifficulty($0) }
@@ -52,7 +52,7 @@ struct GameView: View {
                     .pickerStyle(.menu)
                     .disabled(viewModel.isGenerating)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button("New Game") {
                         viewModel.requestNewGame()
                     }
@@ -80,6 +80,7 @@ struct GameView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
 

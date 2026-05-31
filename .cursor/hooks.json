@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "command": ".cursor/hooks/verify-ios.sh",
+        "matcher": "Write",
+        "timeout": 180
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/shell-guard.sh"
+      }
+    ]
+  }
+}

@@ -1,12 +1,11 @@
+import Combine
 import Foundation
-import Observation
 
-@Observable
-final class GameViewModel {
-    private(set) var state: GameState
-    var isGenerating = false
-    var showWinAlert = false
-    var showNewGameConfirm = false
+final class GameViewModel: ObservableObject {
+    @Published private(set) var state: GameState
+    @Published var isGenerating = false
+    @Published var showWinAlert = false
+    @Published var showNewGameConfirm = false
 
     var conflictKeys: Set<String> {
         SudokuValidator.conflictPositions(in: state.board)
@@ -194,6 +193,7 @@ final class GameViewModel {
     }
 
     private func persist() {
+        objectWillChange.send()
         GameStore.save(state)
     }
 }
