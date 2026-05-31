@@ -6,21 +6,38 @@ final class GameViewModel: ObservableObject {
     @Published var isGenerating = false
     @Published var showWinAlert = false
     @Published var showNewGameConfirm = false
+    @Published var numpadOnLeft: Bool
 
     var conflictKeys: Set<String> {
         SudokuValidator.conflictPositions(in: state.board)
     }
 
-    var canUndo: Bool { !state.undoStack.isEmpty }
-    var canRedo: Bool { !state.redoStack.isEmpty }
+    /// Digits 1–9 that already appear nine times on the board (all placements placed).
+    var completedDigits: Set<Int> {
+        var counts: [Int: Int] = [:]
+        for row in 0..<Board.size {
+            for col in 0..<Board.size {
+                if let value = state.board.value(at: row, col: col) {
+                    counts[value, default: 0] += 1
+                }
+            }
+        }
+        return Set(counts.filter { $0.value == Board.size }.map(\.key))
+    }
 
     init() {
+        numpadOnLeft = GameStore.loadNumpadOnLeft()
         if let saved = GameStore.load() {
             state = saved
         } else {
             state = GameState()
             computeSolutionIfNeeded()
         }
+    }
+
+    func toggleNumpadSide() {
+        numpadOnLeft.toggle()
+        GameStore.saveNumpadOnLeft(numpadOnLeft)
     }
 
     func selectCell(row: Int, col: Int) {
@@ -60,15 +77,18 @@ final class GameViewModel: ObservableObject {
         guard let row = state.selectedRow, let col = state.selectedCol else { return }
         guard !state.board.isGiven(at: row, col: col) else { return }
 
-        if state.inputMode == .notes {
+        if let from = state.board.value(at: row, col: col) {
+            state.board.setValue(nil, at: row, col: col)
+            pushMove(Move.setValue(row: row, col: col, from: from, to: nil))
+            state.hasWon = false
+            persist()
             return
         }
 
-        let from = state.board.value(at: row, col: col)
-        guard from != nil else { return }
-        state.board.setValue(nil, at: row, col: col)
-        pushMove(Move.setValue(row: row, col: col, from: from, to: nil))
-        state.hasWon = false
+        let notes = state.board.notes(at: row, col: col)
+        guard !notes.isEmpty else { return }
+        _ = state.board.clearAllNotes(at: row, col: col)
+        pushMove(Move.clearNotes(row: row, col: col, notes: notes))
         persist()
     }
 
@@ -156,6 +176,8 @@ final class GameViewModel: ObservableObject {
             state.board.setValue(to, at: row, col: col)
         case let .toggleNote(row, col, digit, added):
             state.board.setNotePresent(digit, present: added, at: row, col: col)
+        case let .clearNotes(row, col, _):
+            _ = state.board.clearAllNotes(at: row, col: col)
         }
     }
 
@@ -165,6 +187,8 @@ final class GameViewModel: ObservableObject {
             state.board.setValue(from, at: row, col: col)
         case let .toggleNote(row, col, digit, added):
             state.board.setNotePresent(digit, present: !added, at: row, col: col)
+        case let .clearNotes(row, col, notes):
+            state.board.setNotes(notes, at: row, col: col)
         }
     }
 

@@ -19,7 +19,7 @@ struct Board: Codable, Equatable {
         // Mark givens explicitly when values provided at start
         for row in 0..<Self.size {
             for col in 0..<Self.size {
-                if let v = values[row][col], v != nil {
+                if values[row][col] != nil {
                     cells[row][col].isGiven = true
                 }
             }
@@ -85,6 +85,17 @@ struct Board: Codable, Equatable {
         } else {
             cells[row][col].notes.remove(digit)
         }
+    }
+
+    mutating func setNotes(_ notes: Set<Int>, at row: Int, col: Int) {
+        guard !cells[row][col].isGiven, cells[row][col].value == nil else { return }
+        cells[row][col].notes = notes
+    }
+
+    mutating func clearAllNotes(at row: Int, col: Int) -> Set<Int> {
+        let previous = cells[row][col].notes
+        cells[row][col].notes = []
+        return previous
     }
 
     mutating func markAsGiven(at row: Int, col: Int) {

@@ -28,6 +28,7 @@ enum InputMode: String, Codable {
 enum Move: Codable, Equatable {
     case setValue(row: Int, col: Int, from: Int?, to: Int?)
     case toggleNote(row: Int, col: Int, digit: Int, added: Bool)
+    case clearNotes(row: Int, col: Int, notes: Set<Int>)
 }
 
 struct GameState: Codable, Equatable {

@@ -2,12 +2,12 @@ import Foundation
 
 enum PuzzleGenerator {
     static func generate(difficulty: Difficulty) -> (puzzle: Board, solution: [[Int]]) {
-        var solutionGrid = makeFullGrid()
+        let solutionGrid = makeFullGrid()
         let solution = solutionGrid.map { row in row.map { $0! } }
 
         var puzzleGrid = solutionGrid
         let cellsToRemove = 81 - difficulty.targetGivens
-        var positions = (0..<81).map { ($0 / 9, $0 % 9) }.shuffled()
+        let positions = (0..<81).map { ($0 / 9, $0 % 9) }.shuffled()
 
         var removed = 0
         for (row, col) in positions where removed < cellsToRemove {

@@ -24,15 +24,12 @@ struct GameView: View {
 
                 ControlsView(
                     inputMode: viewModel.state.inputMode,
-                    canUndo: viewModel.canUndo,
-                    canRedo: viewModel.canRedo,
+                    completedDigits: viewModel.completedDigits,
+                    numpadOnLeft: viewModel.numpadOnLeft,
                     isGenerating: viewModel.isGenerating,
                     onModeChange: { viewModel.setInputMode($0) },
                     onDigit: { viewModel.enterDigit($0) },
-                    onErase: { viewModel.erase() },
-                    onHint: { viewModel.hint() },
-                    onUndo: { viewModel.undo() },
-                    onRedo: { viewModel.redo() }
+                    onErase: { viewModel.erase() }
                 )
                 .padding(.horizontal)
 
@@ -52,7 +49,18 @@ struct GameView: View {
                     .pickerStyle(.menu)
                     .disabled(viewModel.isGenerating)
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button {
+                        viewModel.toggleNumpadSide()
+                    } label: {
+                        Image(systemName: viewModel.numpadOnLeft ? "hand.point.left.fill" : "hand.point.right.fill")
+                    }
+                    .accessibilityLabel(viewModel.numpadOnLeft ? "Numpad on left" : "Numpad on right")
+                    .disabled(viewModel.isGenerating)
+                    Button("Hint") {
+                        viewModel.hint()
+                    }
+                    .disabled(viewModel.isGenerating)
                     Button("New Game") {
                         viewModel.requestNewGame()
                     }
