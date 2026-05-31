@@ -1,0 +1,36 @@
+{
+  "terminalAllowlist": [
+    "xcodebuild",
+    "xcrun",
+    "git status",
+    "git diff",
+    "git log",
+    "git add",
+    "git commit",
+    "git checkout",
+    "git branch",
+    "git show",
+    "git restore",
+    "swift",
+    "which",
+    "chmod"
+  ],
+  "mcpAllowlist": [
+    "cursor-app-control:*",
+    "cursor-ide-browser:*",
+    "cursor-backend-control:*"
+  ],
+  "autoRun": {
+    "allow_instructions": [
+      "Run xcodebuild build or test for the Sudoku scheme in this repository.",
+      "Use xcrun simctl list to discover iOS simulators.",
+      "Read-only git inspection commands in this repo."
+    ],
+    "block_instructions": [
+      "git push unless the user explicitly requested a push.",
+      "git push --force to any branch.",
+      "rm -rf or other destructive bulk deletes.",
+      "curl, wget, or network installs unless the user asked."
+    ]
+  }
+}

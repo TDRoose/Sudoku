@@ -1,0 +1,30 @@
+---
+description: SwiftUI Sudoku architecture — Views, ViewModel, Engine boundaries
+globs: Sudoku/**/*.swift,SudokuTests/**/*.swift
+alwaysApply: false
+---
+
+# SwiftUI architecture (Sudoku)
+
+## Layer boundaries
+
+- **Views** (`Sudoku/Views/`): layout, styling, tap handlers only. Call `GameViewModel` methods; no Sudoku rules, solving, or undo stacks.
+- **ViewModels** (`Sudoku/ViewModels/`): `ObservableObject` `GameViewModel` owns `GameState`, user actions, undo/redo, hints, persistence triggers.
+- **Engine** (`Sudoku/Engine/`): pure Swift only — no `import SwiftUI`. Use `SudokuValidator`, `SudokuSolver`, `PuzzleGenerator`.
+- **Models** (`Sudoku/Models/`): `Board`, `Cell`, `GameState`, `Move`, `Difficulty`.
+
+## Mutations
+
+- Every user change that should undo must push a `Move` and clear `redoStack`.
+- Never modify `isGiven` cells' values from the UI.
+- After meaningful `state` changes, call `GameStore.save(state)`.
+- Run `PuzzleGenerator` off the main actor; set `isGenerating` while working.
+
+## New Swift files
+
+Add the file under the correct folder **and** register it in `Sudoku.xcodeproj/project.pbxproj` (Sources build phase).
+
+## UI conventions
+
+- Givens: bold / primary color. User entries: blue. Conflicts: red tint. Selection: yellow tint.
+- Keep system fonts; avoid heavy custom design unless asked.

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "permissions": {
+    "allow": [
+      "Shell(xcodebuild)",
+      "Shell(xcrun)",
+      "Shell(git)",
+      "Shell(swift)",
+      "Shell(chmod)",
+      "Shell(which)",
+      "Read(**/*)",
+      "Write(Sudoku/**)",
+      "Write(SudokuTests/**)",
+      "Write(Sudoku.xcodeproj/**)",
+      "Write(.cursor/**)",
+      "Write(AGENTS.md)",
+      "Write(README.md)",
+      "Write(.gitignore)"
+    ],
+    "deny": [
+      "Shell(rm)",
+      "Shell(curl)",
+      "Shell(wget)",
+      "Shell(git push:*)",
+      "Read(**/.env*)",
+      "Read(**/secrets/**)",
+      "Write(**/.env*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)"
+    ]
+  }
+}
