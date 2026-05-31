@@ -95,13 +95,17 @@ struct GameView: View {
                 Image(systemName: viewModel.numpadOnLeft ? "hand.point.left.fill" : "hand.point.right.fill")
                     .font(.body)
             }
+            .buttonStyle(.plain)
+            .foregroundColor(.primary)
             .accessibilityLabel(viewModel.numpadOnLeft ? "Numpad on left" : "Numpad on right")
             .disabled(viewModel.isGenerating)
 
             Button("Hint") {
                 viewModel.hint()
             }
+            .buttonStyle(.plain)
             .font(.body)
+            .foregroundColor(.primary)
             .disabled(viewModel.isGenerating)
         }
         .padding(.horizontal)

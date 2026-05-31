@@ -21,12 +21,13 @@ struct CellView: View {
         .aspectRatio(1, contentMode: .fit)
     }
 
+    private static let selectionYellow = Color.yellow.opacity(0.42)
+    private static let peerHighlightYellow = Color.yellow.opacity(0.16)
+
     private var backgroundColor: Color {
         if hasConflict { return Color.red.opacity(0.35) }
-        if isSelected { return Color.yellow.opacity(0.45) }
-        if isHighlighted {
-            return inputMode.accentColor.opacity(0.1)
-        }
+        if isSelected { return Self.selectionYellow }
+        if isHighlighted { return Self.peerHighlightYellow }
         return Color(.systemBackground)
     }
 
