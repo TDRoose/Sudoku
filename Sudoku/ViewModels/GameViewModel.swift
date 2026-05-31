@@ -8,6 +8,8 @@ final class GameViewModel: ObservableObject {
     @Published var showNewGameConfirm = false
     @Published var numpadOnLeft: Bool
 
+    private var generationTask: Task<Void, Never>?
+
     var conflictKeys: Set<String> {
         SudokuValidator.conflictPositions(in: state.board)
     }
@@ -29,9 +31,12 @@ final class GameViewModel: ObservableObject {
         numpadOnLeft = GameStore.loadNumpadOnLeft()
         if let saved = GameStore.load() {
             state = saved
+            if state.solution == nil {
+                scheduleSolutionComputation()
+            }
         } else {
             state = GameState()
-            computeSolutionIfNeeded()
+            scheduleSolutionComputation()
         }
     }
 
@@ -110,9 +115,11 @@ final class GameViewModel: ObservableObject {
     }
 
     func hint() {
-        computeSolutionIfNeeded()
-        guard let solution = state.solution,
-              let hint = SudokuSolver.hint(for: state.board, solution: solution) else { return }
+        guard let solution = state.solution else {
+            scheduleSolutionComputation()
+            return
+        }
+        guard let hint = SudokuSolver.hint(for: state.board, solution: solution) else { return }
 
         let row = hint.row
         let col = hint.col
@@ -129,8 +136,9 @@ final class GameViewModel: ObservableObject {
     }
 
     func setDifficulty(_ difficulty: Difficulty) {
+        guard state.difficulty != difficulty else { return }
         state.difficulty = difficulty
-        persist()
+        objectWillChange.send()
     }
 
     func requestNewGame() {
@@ -143,12 +151,18 @@ final class GameViewModel: ObservableObject {
 
     func startNewGame() {
         showNewGameConfirm = false
+        generationTask?.cancel()
         isGenerating = true
         let difficulty = state.difficulty
-        Task { @MainActor in
-            let result = await Task.detached(priority: .userInitiated) {
-                PuzzleGenerator.generate(difficulty: difficulty)
+        generationTask = Task { @MainActor in
+            let result: (puzzle: Board, solution: [[Int]])? = await Task.detached(priority: .userInitiated) {
+                if Task.isCancelled { return nil }
+                return PuzzleGenerator.generate(difficulty: difficulty)
             }.value
+            guard !Task.isCancelled, let result else {
+                isGenerating = false
+                return
+            }
             state = GameState(
                 board: result.puzzle,
                 difficulty: difficulty,
@@ -199,16 +213,26 @@ final class GameViewModel: ObservableObject {
         }
     }
 
-    private func computeSolutionIfNeeded() {
+    private func scheduleSolutionComputation() {
         guard state.solution == nil else { return }
-        var grid = state.board.valueGrid()
-        if SudokuSolver.solve(&grid) {
-            state.solution = grid.map { row in row.map { $0! } }
+        let board = state.board
+        Task { @MainActor in
+            let solved = await Task.detached(priority: .utility) {
+                var grid = board.valueGrid()
+                guard SudokuSolver.solve(&grid) else { return nil as [[Int]]? }
+                return grid.map { row in row.map { $0! } }
+            }.value
+            guard let solved, state.solution == nil else { return }
+            state.solution = solved
+            objectWillChange.send()
         }
     }
 
     private func persist() {
+        let snapshot = state
         objectWillChange.send()
-        GameStore.save(state)
+        Task.detached(priority: .utility) {
+            GameStore.save(snapshot)
+        }
     }
 }

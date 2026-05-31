@@ -46,7 +46,8 @@ struct GameView: View {
                             Text(level.displayName).tag(level)
                         }
                     }
-                    .pickerStyle(.menu)
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 220)
                     .disabled(viewModel.isGenerating)
                 }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {

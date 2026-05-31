@@ -1,7 +1,22 @@
 import Foundation
 
 enum PuzzleGenerator {
+    private static let maxAttempts = 40
+
     static func generate(difficulty: Difficulty) -> (puzzle: Board, solution: [[Int]]) {
+        for _ in 0..<maxAttempts {
+            if let result = tryGenerate(difficulty: difficulty) {
+                return result
+            }
+        }
+        // Fallback: easier target if hard removal keeps failing uniqueness checks.
+        if difficulty != .easy, let result = tryGenerate(difficulty: .medium) {
+            return result
+        }
+        return tryGenerate(difficulty: .easy)!
+    }
+
+    private static func tryGenerate(difficulty: Difficulty) -> (puzzle: Board, solution: [[Int]])? {
         let solutionGrid = makeFullGrid()
         let solution = solutionGrid.map { row in row.map { $0! } }
 
@@ -9,15 +24,12 @@ enum PuzzleGenerator {
         let cellsToRemove = 81 - difficulty.targetGivens
         let positions = (0..<81).map { ($0 / 9, $0 % 9) }.shuffled()
 
-        var removed = 0
-        for (row, col) in positions where removed < cellsToRemove {
-            let backup = puzzleGrid[row][col]
+        for (row, col) in positions.prefix(cellsToRemove) {
             puzzleGrid[row][col] = nil
-            if SudokuSolver.solutionCount(puzzleGrid, limit: 2) == 1 {
-                removed += 1
-            } else {
-                puzzleGrid[row][col] = backup
-            }
+        }
+
+        guard SudokuSolver.solutionCount(puzzleGrid, limit: 2) == 1 else {
+            return nil
         }
 
         var board = Board(values: puzzleGrid, givens: [])
