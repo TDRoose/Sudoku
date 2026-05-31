@@ -35,17 +35,18 @@ enum SudokuSolver {
         return total
     }
 
-    /// First empty cell filled with solution digit (for hints).
+    /// Random empty playable cell filled with the solution digit (for hints).
     static func hint(for board: Board, solution: [[Int]]) -> (row: Int, col: Int, value: Int)? {
+        var candidates: [(row: Int, col: Int, value: Int)] = []
         for row in 0..<Board.size {
             for col in 0..<Board.size {
                 if board.cells[row][col].isGiven { continue }
                 if board.value(at: row, col: col) == nil {
-                    return (row, col, solution[row][col])
+                    candidates.append((row, col, solution[row][col]))
                 }
             }
         }
-        return nil
+        return candidates.randomElement()
     }
 
     private static func nextEmpty(in grid: [[Int?]]) -> (Int, Int)? {
