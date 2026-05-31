@@ -5,7 +5,8 @@ final class GameViewModel: ObservableObject {
     @Published private(set) var state: GameState
     @Published var isGenerating = false
     @Published var showWinAlert = false
-    @Published var showNewGameConfirm = false
+    @Published var showDifficultyChangeConfirm = false
+    @Published var pendingDifficulty: Difficulty?
     @Published var numpadOnLeft: Bool
 
     private var generationTask: Task<Void, Never>?
@@ -135,22 +136,29 @@ final class GameViewModel: ObservableObject {
         persist()
     }
 
-    func setDifficulty(_ difficulty: Difficulty) {
-        guard state.difficulty != difficulty else { return }
+    func selectDifficulty(_ difficulty: Difficulty) {
+        guard difficulty != state.difficulty else { return }
+        pendingDifficulty = difficulty
+        showDifficultyChangeConfirm = true
+    }
+
+    func confirmDifficultyChange() {
+        guard let difficulty = pendingDifficulty else { return }
+        pendingDifficulty = nil
+        showDifficultyChangeConfirm = false
         state.difficulty = difficulty
+        startNewGame()
+    }
+
+    func cancelDifficultyChange() {
+        pendingDifficulty = nil
+        showDifficultyChangeConfirm = false
         objectWillChange.send()
     }
 
-    func requestNewGame() {
-        if hasUserProgress() {
-            showNewGameConfirm = true
-        } else {
-            startNewGame()
-        }
-    }
-
     func startNewGame() {
-        showNewGameConfirm = false
+        showDifficultyChangeConfirm = false
+        pendingDifficulty = nil
         generationTask?.cancel()
         isGenerating = true
         let difficulty = state.difficulty

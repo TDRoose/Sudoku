@@ -3,9 +3,25 @@ import SwiftUI
 struct GameView: View {
     @StateObject private var viewModel = GameViewModel()
 
+    private var difficultySelection: Binding<Difficulty> {
+        Binding(
+            get: { viewModel.pendingDifficulty ?? viewModel.state.difficulty },
+            set: { viewModel.selectDifficulty($0) }
+        )
+    }
+
     var body: some View {
         NavigationView {
             VStack(spacing: 16) {
+                Picker("Difficulty", selection: difficultySelection) {
+                    ForEach(Difficulty.allCases) { level in
+                        Text(level.displayName).tag(level)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .disabled(viewModel.isGenerating)
+
                 if viewModel.isGenerating {
                     ProgressView("Generating puzzle…")
                         .padding()
@@ -37,19 +53,6 @@ struct GameView: View {
             }
             .navigationTitle("Sudoku")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Picker("Difficulty", selection: Binding(
-                        get: { viewModel.state.difficulty },
-                        set: { viewModel.setDifficulty($0) }
-                    )) {
-                        ForEach(Difficulty.allCases) { level in
-                            Text(level.displayName).tag(level)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 220)
-                    .disabled(viewModel.isGenerating)
-                }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
                         viewModel.toggleNumpadSide()
@@ -62,10 +65,6 @@ struct GameView: View {
                         viewModel.hint()
                     }
                     .disabled(viewModel.isGenerating)
-                    Button("New Game") {
-                        viewModel.requestNewGame()
-                    }
-                    .disabled(viewModel.isGenerating)
                 }
             }
             .alert("You solved it!", isPresented: Binding(
@@ -76,20 +75,27 @@ struct GameView: View {
                 Button("Keep Playing", role: .cancel) {}
             }
             .confirmationDialog(
-                "Start a new puzzle?",
+                difficultyChangeTitle,
                 isPresented: Binding(
-                    get: { viewModel.showNewGameConfirm },
-                    set: { viewModel.showNewGameConfirm = $0 }
+                    get: { viewModel.showDifficultyChangeConfirm },
+                    set: { if !$0 { viewModel.cancelDifficultyChange() } }
                 ),
                 titleVisibility: .visible
             ) {
-                Button("New Game", role: .destructive) {
-                    viewModel.startNewGame()
+                Button("Start New Puzzle", role: .destructive) {
+                    viewModel.confirmDifficultyChange()
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel", role: .cancel) {
+                    viewModel.cancelDifficultyChange()
+                }
             }
         }
         .navigationViewStyle(.stack)
+    }
+
+    private var difficultyChangeTitle: String {
+        let name = (viewModel.pendingDifficulty ?? viewModel.state.difficulty).displayName
+        return "Start a new \(name) puzzle?"
     }
 }
 
