@@ -37,13 +37,34 @@ You do **not** need a paid **Apple Developer Program** membership ($99/year) for
 
 ---
 
-## Step 3 — Turn on signing for the app
+## Step 3 — Connect and prepare your iPhone (do this before signing)
+
+Xcode must see your phone **before** it can create a provisioning profile. If you set up signing first, you may see:
+
+> *Your team has no devices from which to generate a provisioning profile*
+
+1. **Unlock** the iPhone and connect it with a **USB cable** (use a data-capable cable, not charge-only).
+2. On the iPhone: **Trust This Computer?** → **Trust**, then enter your passcode.
+3. Check your iOS version: **Settings → General → About → iOS Version**.
+   - **iOS 15**: there is **no** Developer Mode setting — skip to step 4; that is normal.
+   - **iOS 16 or newer**: Developer Mode is often **hidden until Xcode pairs**. Finish step 4–5 first; if the phone then shows **Turn On Developer Mode?**, tap **Turn On**, enter passcode, restart, then turn it **On** under **Settings → Privacy & Security → Developer Mode** (scroll to the bottom of that screen).
+4. In Xcode: **Window → Devices and Simulators** → **Devices** tab.
+   - Your iPhone should appear by name. Status should become ready (not stuck on “pairing” forever — see troubleshooting below).
+
+Keep the phone connected, unlocked, and on the Home Screen while you do Step 4.
+
+**If Xcode says “already started pairing” but the phone shows nothing:** unplug the cable → quit Xcode → restart the iPhone → plug in again → unlock → open Xcode → Devices window. On the iPhone, leave it unlocked on the Home Screen for 30 seconds. If still stuck, try **Run** (⌘R) with your phone selected as the destination — that often completes pairing or triggers the Developer Mode alert on the phone.
+
+---
+
+## Step 4 — Turn on signing for the app
 
 1. In the left sidebar, click the blue **Sudoku** project (top item).
 2. Under **TARGETS**, select **Sudoku** (not SudokuTests).
 3. Open **Signing & Capabilities**.
 4. Check **Automatically manage signing**.
 5. **Team**: choose your name — **Personal Team** (or your paid team if you have one).
+6. If a yellow warning remains, click **Try Again** (with the phone still connected).
 
 If Xcode shows an error about the bundle ID:
 
@@ -51,17 +72,6 @@ If Xcode shows an error about the bundle ID:
 - The default in this project is `com.tdroose.Sudoku`; only one app can use a given ID per team, so use your own if needed.
 
 Repeat for target **SudokuTests** if tests fail to sign: same Team, automatic signing.
-
----
-
-## Step 4 — Prepare your iPhone
-
-1. **Unlock** the phone and connect it with USB (or use a device already paired for wireless debugging).
-2. On the iPhone, if prompted **Trust This Computer?** → **Trust**, and enter your passcode.
-3. On **iOS 16+**, enable **Developer Mode** (needed to run apps from Xcode):
-   - **Settings → Privacy & Security → Developer Mode** → On → restart when asked.
-
-The first time you run an app from Xcode, the phone may ask you to confirm Developer Mode again.
 
 ---
 
@@ -101,6 +111,19 @@ Open **Sudoku** from the home screen again.
 
 ## Troubleshooting
 
+### “Your team has no devices…” / “Communication with Apple failed”
+
+1. **Connect the iPhone by USB** and unlock it (Step 3 above).
+2. Confirm it appears in **Window → Devices and Simulators**.
+3. In **Signing & Capabilities**, select your **Personal Team**, then click **Try Again**.
+4. At the top of Xcode, select **your iPhone** as the run destination (not “Any iOS Device” and not a Simulator), then press **Run** (⌘R) once — that registers the device with your team.
+5. If it still fails:
+   - **Xcode → Settings → Accounts** → select your Apple ID → **Download Manual Profiles** (or sign out and sign back in).
+   - Check internet connection; Apple’s servers occasionally time out — wait a minute and **Try Again**.
+   - Restart Xcode with the phone still plugged in.
+
+With a **free** Apple ID you normally do **not** need to add devices manually at [developer.apple.com](https://developer.apple.com/account/) — Xcode does that when the phone is connected and you build to it.
+
 ### “Failed to register bundle identifier”
 
 Use a unique **Bundle Identifier** under Signing (e.g. `com.yourname.Sudoku`).
@@ -115,9 +138,25 @@ Pick a **Team** in Signing & Capabilities and enable **Automatically manage sign
 - In Xcode: **Window → Devices and Simulators** — confirm the phone is connected and not busy.
 - On the phone: trust the computer again.
 
-### “Developer Mode is disabled”
+### “Developer Mode is disabled” (iOS 16+)
 
-Turn on **Developer Mode** in Settings (see Step 4) and restart.
+Run from Xcode once so the phone offers **Turn On Developer Mode?**, then enable it under **Settings → Privacy & Security → Developer Mode** and restart.
+
+### I cannot find Developer Mode in Settings
+
+- **iOS 15**: this toggle does not exist — you do not need it.
+- **iOS 16+**: open **Settings → Privacy & Security** and scroll **to the bottom**. If it is missing, connect the phone, select it in Xcode, press **Run** (⌘R), and watch the iPhone for a system alert.
+- Update iOS (**Settings → General → Software Update**) if you are far behind.
+
+### Xcode stuck on “already started pairing…”
+
+1. Unplug the iPhone.
+2. Quit Xcode completely.
+3. Restart the iPhone.
+4. Plug in again, unlock, tap **Trust** if asked.
+5. Open Xcode → **Window → Devices and Simulators** — wait 30 seconds with the phone unlocked.
+6. Select your iPhone as the run destination and press **Run** (⌘R) even if Devices still looks odd — check the **phone** for any new popup.
+7. Try another USB port/cable if the phone never appears as ready.
 
 ### Build errors about iOS version
 
@@ -140,9 +179,10 @@ Normal with a **free** Personal Team. Plug in the phone and **Run** from Xcode t
 ## Quick checklist
 
 - [ ] Xcode installed, Apple ID added under **Settings → Accounts**
-- [ ] **Sudoku** target: Automatic signing + Personal Team
-- [ ] iPhone: trusted Mac, **Developer Mode** on
-- [ ] Device menu: your iPhone selected
+- [ ] iPhone connected (USB), trusted Mac, **Developer Mode** on
+- [ ] iPhone visible in **Devices and Simulators**
+- [ ] **Sudoku** target: Automatic signing + Personal Team (**Try Again** if needed)
+- [ ] Device menu: your iPhone selected (not Simulator)
 - [ ] **Run** (⌘R)
 - [ ] If needed: **Trust** developer in iPhone Settings
 

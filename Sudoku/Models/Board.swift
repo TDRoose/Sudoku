@@ -71,6 +71,26 @@ struct Board: Codable, Equatable {
         }
     }
 
+    func isGiven(at row: Int, col: Int) -> Bool {
+        cells[row][col].isGiven
+    }
+
+    func notes(at row: Int, col: Int) -> Set<Int> {
+        cells[row][col].notes
+    }
+
+    mutating func setNotePresent(_ digit: Int, present: Bool, at row: Int, col: Int) {
+        if present {
+            cells[row][col].notes.insert(digit)
+        } else {
+            cells[row][col].notes.remove(digit)
+        }
+    }
+
+    mutating func markAsGiven(at row: Int, col: Int) {
+        cells[row][col].isGiven = true
+    }
+
     /// Flat 9×9 grid of values only (nil = 0 for solver).
     func valueGrid() -> [[Int?]] {
         cells.map { row in row.map(\.value) }

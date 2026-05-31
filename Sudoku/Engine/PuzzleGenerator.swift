@@ -24,7 +24,7 @@ enum PuzzleGenerator {
         for row in 0..<Board.size {
             for col in 0..<Board.size {
                 if board.value(at: row, col: col) != nil {
-                    board.cells[row][col].isGiven = true
+                    board.markAsGiven(at: row, col: col)
                 }
             }
         }

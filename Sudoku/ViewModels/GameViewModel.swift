@@ -36,10 +36,10 @@ final class GameViewModel: ObservableObject {
 
     func enterDigit(_ digit: Int) {
         guard let row = state.selectedRow, let col = state.selectedCol else { return }
-        guard !state.board.cells[row][col].isGiven else { return }
+        guard !state.board.isGiven(at: row, col: col) else { return }
 
         if state.inputMode == .notes {
-            let hadNote = state.board.cells[row][col].notes.contains(digit)
+            let hadNote = state.board.notes(at: row, col: col).contains(digit)
             let move = Move.toggleNote(row: row, col: col, digit: digit, added: !hadNote)
             state.board.toggleNote(digit, at: row, col: col)
             pushMove(move)
@@ -58,7 +58,7 @@ final class GameViewModel: ObservableObject {
 
     func erase() {
         guard let row = state.selectedRow, let col = state.selectedCol else { return }
-        guard !state.board.cells[row][col].isGiven else { return }
+        guard !state.board.isGiven(at: row, col: col) else { return }
 
         if state.inputMode == .notes {
             return
@@ -101,7 +101,6 @@ final class GameViewModel: ObservableObject {
         guard from != value else { return }
 
         state.board.setValue(value, at: row, col: col)
-        state.board.cells[row][col].isGiven = false
         pushMove(Move.setValue(row: row, col: col, from: from, to: value))
         state.selectedRow = row
         state.selectedCol = col
@@ -156,11 +155,7 @@ final class GameViewModel: ObservableObject {
         case let .setValue(row, col, _, to):
             state.board.setValue(to, at: row, col: col)
         case let .toggleNote(row, col, digit, added):
-            if added {
-                state.board.cells[row][col].notes.insert(digit)
-            } else {
-                state.board.cells[row][col].notes.remove(digit)
-            }
+            state.board.setNotePresent(digit, present: added, at: row, col: col)
         }
     }
 
@@ -169,11 +164,7 @@ final class GameViewModel: ObservableObject {
         case let .setValue(row, col, from, _):
             state.board.setValue(from, at: row, col: col)
         case let .toggleNote(row, col, digit, added):
-            if added {
-                state.board.cells[row][col].notes.remove(digit)
-            } else {
-                state.board.cells[row][col].notes.insert(digit)
-            }
+            state.board.setNotePresent(digit, present: !added, at: row, col: col)
         }
     }
 
